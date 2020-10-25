@@ -17,6 +17,9 @@ db.init_app(app)
 
 response = requests.get("https://swapi.dev/api/planets/")
 responseJson = response.json()
+while responseJson['next'] is not None:
+    response = requests.get(responseJson['next'])
+    responseJson = response.json()
 
 def DB_Helth():
     return "DB not install yet!"
