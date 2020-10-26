@@ -94,7 +94,7 @@ def Helth():
 def AddPlanet(name,climate,terrain):
     resultQuery = DB_Query('SELECT * from planets WHERE planetsid = (SELECT MAX(planetsid) FROM planets)')
     result = resultQuery[0]
-    id = result[-1]
+    id = result[-1] + 1
     #print(lastTree)
     DB_Insert(name,climate,terrain,0,id)
     return "Insert Planet"
@@ -113,7 +113,14 @@ def PlanetById(id):
 
 @app.route('/delete/planet/<string:name>')
 def DeleteByName(name):
-    return name
+    query = "DELETE from planets WHERE planetname LIKE '" + str(name) + "'"
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    cursor.execute(query)
+    conn.commit()
+    conn.close()
+    return "Planet Removed"
 
 @app.route('/delete/planet/id/<string:id>')
 def DeleteById(id):
