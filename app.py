@@ -29,7 +29,15 @@ def DB_Conect():
     return 0
 
 def DB_Query(query):
-    return 0
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    print(result)
+    conn.commit()
+    conn.close()
+    return result
 
 def DB_Insert(name, climate, terrain, films, id):
     sql = "INSERT INTO planets (planetsid, planetname, planetclimate, planetterrain, films) VALUES (" + str(id) + ", '" +  str(name) + "', '" + str(climate) + "', '" + str(terrain) + "', '" + str(films) + "')"
@@ -84,7 +92,12 @@ def Helth():
 
 @app.route('/new/planet/<string:name>/climate/<string:climate>/terrain/<string:terrain>')
 def AddPlanet(name,climate,terrain):
-    return 0
+    resultQuery = DB_Query('SELECT * from planets WHERE planetsid = (SELECT MAX(planetsid) FROM planets)')
+    result = resultQuery[0]
+    id = result[-1]
+    #print(lastTree)
+    DB_Insert(name,climate,terrain,0,id)
+    return "Insert Planet"
 
 @app.route('/planets')
 def ListPlanets():
