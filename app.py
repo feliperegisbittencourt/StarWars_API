@@ -44,7 +44,7 @@ def DB_Query_JSON(query):
     dic = {
         'planetsid': 'id',
         'planetname': 'name',
-        'planetcimate': 'climate',
+        'planetclimate': 'climate',
         'planetterrain': 'terrain',
         'films': 'films'
     }
@@ -134,7 +134,8 @@ def ListPlanets():
 
 @app.route('/planet/name/<string:name>')
 def PlanetByName(name):
-    return name
+    planet = DB_Query_JSON(f"SELECT * FROM planets WHERE planetname LIKE '" + str(name) + "'")
+    return Response(json.dumps({'planet': planet}), mimetype="application/json")
 
 @app.route('/planet/id/<string:id>')
 def PlanetById(id):
