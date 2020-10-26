@@ -1,6 +1,7 @@
 from flask import Flask
 from models import db
 import requests
+import psycopg2
 app = Flask(__name__)
 
 POSTGRES = {
@@ -10,28 +11,72 @@ POSTGRES = {
     'host': 'localhost',
     'port': '5432',
 }
+
+POSTGRESstr = "database='Planets_StarWars', user='postgres', password='postgres', host='127.0.0.1', port= '5432'"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
 db.init_app(app)
 
-response = requests.get("https://swapi.dev/api/planets/")
-responseJson = response.json()
-while responseJson['next'] is not None:
-    response = requests.get(responseJson['next'])
-    responseJson = response.json()
-
 def DB_Helth():
     return "DB not install yet!"
 
 def DB_Conect():
+    #conn = psycopg2.connect(POSTGRESstr)
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
     return 0
 
 def DB_Query(query):
     return 0
 
-def DB_Insert(data):
+def DB_Insert(name, climate, terrain, films, id):
+    sql = "INSERT INTO planets (planetsid, planetname, planetclimate, planetterrain, films) VALUES (" + str(id) + ", '" +  str(name) + "', '" + str(climate) + "', '" + str(terrain) + "', '" + str(films) + "')"
+    #sql = '''INSERT INTO planets (planetname, planetclimate, planetterrain, films) VALUES ('str(name)', 'str(climate)', 'str(terrain)', 'str(films)')'''
+    #DB_Conect()
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    cursor = cursor.execute(sql)
+    conn.commit()
+    conn.close()
     return 0
+
+def DB_Clean():
+    sql = "DELETE FROM planets"
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    cursor = cursor.execute(sql)
+    conn.commit()
+    conn.close()
+    return 0
+
+response = requests.get("https://swapi.dev/api/planets/")
+responseJson = response.json()
+i = 1
+DB_Clean()
+for x in responseJson['results']:
+    planetName = x['name']
+    planetClimate = x['climate']
+    planetTerrain = x['terrain']
+    films = len(x['films'])
+    id = i
+    DB_Insert(planetName, planetClimate, planetTerrain, films, id)
+    i = i  + 1
+while responseJson['next'] is not None:
+    response = requests.get(responseJson['next'])
+    responseJson = response.json()
+    for x in responseJson['results']:
+        planetName = x['name']
+        planetClimate = x['climate']
+        planetTerrain = x['terrain']
+        films = len(x['films'])
+        id = i
+        DB_Insert(planetName, planetClimate, planetTerrain, films, id)
+        i = i + 1
+
 
 @app.route('/')
 def Helth():
