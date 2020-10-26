@@ -148,7 +148,7 @@ def AddPlanet(name,climate,terrain):
     id = result[-1] + 1
     #print(lastTree)
     DB_Insert(name,climate,terrain,0,id)
-    return "Insert Planet"
+    return Response(json.dumps({'body':{'data':{'PlanetId': id}, 'message': "Planet " + str(id) + " was added successfully!"}}))
 
 @app.route('/planets')
 def ListPlanets():
@@ -174,7 +174,7 @@ def DeleteByName(name):
     cursor.execute(query)
     conn.commit()
     conn.close()
-    return "Planet Removed"
+    return Response(json.dumps({'body':{'data':{'Planetname': name}, 'message': "Planet " + str(name) + " was removed successfully!"}}))
 
 @app.route('/delete/planet/id/<string:id>')
 def DeleteById(id):
@@ -185,7 +185,7 @@ def DeleteById(id):
     cursor.execute(query)
     conn.commit()
     conn.close()
-    return "Planet Removed"
+    return Response(json.dumps({'body':{'data':{'Planetid': id}, 'message': "Planet " + str(id) + " was removed successfully!"}}))
 
 if __name__ == '__main__':
     app.config['DEBUG'] = True
