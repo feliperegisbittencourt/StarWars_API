@@ -19,8 +19,30 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 
 db.init_app(app)
 
-def DB_Helth():
-    return "DB not install yet!"
+def DB_Health():
+    dic = {
+        'current_timestamp': 'date',
+        'version': 'version'
+    }
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    sql = 'SELECT CURRENT_TIMESTAMP, VERSION()'
+    cursor.execute(sql)
+    results = []
+    columns = [column[0] for column in cursor.description]
+    for row in cursor.fetchall():
+        linha = dict(zip(columns, row))
+        obj = {}
+        for l in linha:
+            obj[dic[l]] = str(linha[l])
+        results.append(obj)
+
+    obj['message'] = 'Welcome to Star Wars API by Felipe Bittencourt'
+    
+    cursor.close()
+    conn.close()
+    return obj
 
 def DB_Conect():
     #conn = psycopg2.connect(POSTGRESstr)
@@ -115,8 +137,9 @@ while responseJson['next'] is not None:
 
 
 @app.route('/')
-def Helth():
-    return DB_Helth()
+def Health():
+    resultQuery = DB_Health()
+    return Response(json.dumps({'health': resultQuery}))
 
 @app.route('/new/planet/<string:name>/climate/<string:climate>/terrain/<string:terrain>')
 def AddPlanet(name,climate,terrain):
