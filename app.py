@@ -139,7 +139,8 @@ def PlanetByName(name):
 
 @app.route('/planet/id/<string:id>')
 def PlanetById(id):
-    return id
+    planet = DB_Query_JSON(f"SELECT * FROM planets WHERE planetsid = '" + str(id) + "'")
+    return Response(json.dumps({'planet': planet}), mimetype="application/json")
 
 @app.route('/delete/planet/<string:name>')
 def DeleteByName(name):
