@@ -1,7 +1,8 @@
-from flask import Flask
+from flask import Flask, Response, jsonify
 from models import db
 import requests
 import psycopg2
+import json
 app = Flask(__name__)
 
 POSTGRES = {
@@ -38,6 +39,33 @@ def DB_Query(query):
     conn.commit()
     conn.close()
     return result
+
+def DB_Query_JSON(query):
+    dic = {
+        'planetsid': 'id',
+        'planetname': 'name',
+        'planetcimate': 'climate',
+        'planetterrain': 'terrain',
+        'films': 'films'
+    }
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    cursor.execute(query)
+    results = []
+    columns = [column[0] for column in cursor.description]
+    for row in cursor.fetchall():
+        linha = dict(zip(columns, row))
+        obj = {}
+        for l in linha:
+            obj[dic[l]] = linha[l]
+        results.append(obj)
+    
+    cursor.close()
+    conn.close()
+
+    return results
+
 
 def DB_Insert(name, climate, terrain, films, id):
     sql = "INSERT INTO planets (planetsid, planetname, planetclimate, planetterrain, films) VALUES (" + str(id) + ", '" +  str(name) + "', '" + str(climate) + "', '" + str(terrain) + "', '" + str(films) + "')"
@@ -101,7 +129,8 @@ def AddPlanet(name,climate,terrain):
 
 @app.route('/planets')
 def ListPlanets():
-    return 0
+    planets = DB_Query_JSON(f'''SELECT planetsid, planetname FROM planets''')
+    return Response(json.dumps({'planets': planets}), mimetype="application/json")
 
 @app.route('/planet/name/<string:name>')
 def PlanetByName(name):
@@ -124,7 +153,14 @@ def DeleteByName(name):
 
 @app.route('/delete/planet/id/<string:id>')
 def DeleteById(id):
-    return id
+    query = "DELETE from planets WHERE planetsid LIKE '" + str(id) + "'"
+    conn = psycopg2.connect(database="Planets_StarWars", user='postgres', password='postgres', host='127.0.0.1', port= '5432')
+    conn.autocommit = True
+    cursor = conn.cursor()
+    cursor.execute(query)
+    conn.commit()
+    conn.close()
+    return "Planet Removed"
 
 if __name__ == '__main__':
     app.config['DEBUG'] = True
